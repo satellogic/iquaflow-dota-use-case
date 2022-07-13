@@ -1,0 +1,5 @@
+tensorflow-gpu==1.5.0
+pillow
+lxml
+jupyter
+matplotlib
