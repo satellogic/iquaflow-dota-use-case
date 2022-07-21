@@ -1,5 +1,5 @@
 
-PROJ_NAME=dota
+PROJ_NAME=dotahbb
 APP_PATH=/iqf
 
 IMG="${PROJ_NAME}"
@@ -20,22 +20,25 @@ endif
 help:
 	@echo "build -- builds the docker image"
 	@echo "dockershell -- raises an interactive shell docker"
+	@echo "preproc -- this preprocesses the dataset and downloads trained models"
 	@echo "notebookshell -- launches a notebook server"
 	@echo "mlflow -- launches an mlflow server"
 
 build:
 	docker build -t $(IMG) .
-	chmod 775 ./download.sh && ./download.sh
 
 dockershell:
 	docker run --rm --name $(CONTAINER_NAME) --gpus all -p 9198:9198 \
-	-v $(shell pwd):$(APP_PATH) -v $(DS_VOLUME):$(DS_VOLUME) \
+	-v $(shell pwd):$(APP_PATH) -v $(DS_VOLUME):/data \
 	-it $(IMG)
+
+download:
+	docker exec -it $(CONTAINER_NAME) /bin/bash -c "./download.sh"
 
 notebookshell:
 	docker run --gpus all --privileged -itd --rm --name $(CONTAINER_NAME)-nb \
 	-p ${NB_PORT}:${NB_PORT} \
-	-v $(shell pwd):$(APP_PATH) -v $(DS_VOLUME):$(DS_VOLUME) \
+	-v $(shell pwd):$(APP_PATH) -v $(DS_VOLUME):/data \
 	$(IMG) \
 	/miniconda3/envs/iqfenv/bin/jupyter lab \
 	--NotebookApp.token='iqf' \
@@ -47,6 +50,6 @@ notebookshell:
 mlflow:
 	docker run --privileged -itd --rm --name $(CONTAINER_NAME)-mlf \
 	-p ${MLF_PORT}:${MLF_PORT} \
-	-v $(shell pwd):$(APP_PATH) -v $(DS_VOLUME):$(DS_VOLUME) \
+	-v $(shell pwd):$(APP_PATH) -v $(DS_VOLUME):/data \
 	$(IMG) \
 	mlflow ui --host 0.0.0.0:${MLF_PORT}

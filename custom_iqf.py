@@ -29,6 +29,7 @@ class DSModifierDirSaveJPEG(DSModifier):
         Returns:
             Name of the new folder containign the images
         """
+        data_input = os.path.join(os.path.dirname(data_input), 'images')
         input_name = os.path.basename(data_input)
         dst = os.path.join(mod_path, input_name)
         os.makedirs(dst, exist_ok=True)
@@ -39,8 +40,8 @@ class DSModifierDirSaveJPEG(DSModifier):
                 continue
             if os.path.exists(dst_fn):
                 continue
-            loaded = cv2.imread(file_path, -1)
             print(enu,file_path)
+            loaded = cv2.imread(file_path, -1)
             assert loaded.ndim == 2 or loaded.ndim == 3, (
                 "(load_img): File " + file_path + " not valid image"
             )
@@ -118,6 +119,7 @@ class DSModifierResize(DSModifierDirSaveJPEG):
 
     def _ds_input_modification(self, data_input: str, mod_path: str) -> str:
 
+        data_input = os.path.join(os.path.dirname(data_input), 'images')
         input_name = os.path.basename(data_input)
         dst_compressed = os.path.join(mod_path, 'images_compressed')
         dst_resized_back = os.path.join(mod_path, input_name)

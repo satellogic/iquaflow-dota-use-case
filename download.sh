@@ -1,11 +1,11 @@
 #!/bin/bash
 
-export DS_VOLUME=/Nas
+export DS_VOLUME=/data
 
 for CROPSIZE in 608 1024
 do
     export CROPSIZE=$CROPSIZE
-    python -c "import os; D=os.environ['DS_VOLUME']; C=os.environ['CROPSIZE']; os.makedirs(f'{D}/DOTA1_0/split_ss_dota1_0_glasgow_{C}',exist_ok=True)"
+    python3 -c "import os; D=os.environ['DS_VOLUME']; C=os.environ['CROPSIZE']; os.makedirs(f'{D}/DOTA1_0/split_ss_dota1_0_glasgow_{C}',exist_ok=True)"
     cd $DS_VOLUME/DOTA1_0/split_ss_dota1_0_glasgow_$CROPSIZE
     for PARTITION in "train" "val"
     do
@@ -30,8 +30,8 @@ for CROPSIZE in 608 1024
 do
     for PARTITION in "train" "val"
     do
-        /usr/local/bin/python create_dota_tf_record.py \
-            --data_dir=/Nas/DOTA1_0/split_ss_dota1_0_glasgow_$CROPSIZE/$PARTITION \
+        /usr/local/bin/python3 create_dota_tf_record.py \
+            --data_dir=/data/DOTA1_0/split_ss_dota1_0_glasgow_$CROPSIZE/$PARTITION \
             --indexfile=$PARTITION.txt \
             --output_name=dota_$PARTITION.record \
             --label_map_path=data/dota_label_map.pbtxt

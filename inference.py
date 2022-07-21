@@ -57,8 +57,10 @@ def main(
 		f"--output_name {output_name}",
 		f"--label_map_path data/dota_label_map.pbtxt",
 	]
-
+	
 	if 0 in STEPS:
+		print('**************************************\n\t\t\tSTEP 0\n**************************************')
+		print(cmd)
 		os.system( ' '.join(cmd) )
 
 	###############################
@@ -77,6 +79,7 @@ def main(
 
 	if 1 in STEPS:
 		print('**************************************\n\t\t\tSTEP 1\n**************************************')
+		print(cmd)
 		os.system( ' '.join(cmd) )
 
 	###############################
@@ -92,6 +95,7 @@ def main(
 
 	if 2 in STEPS:
 		print('**************************************\n\t\t\tSTEP 2\n**************************************')
+		print(cmd)
 		os.system( ' '.join(cmd) )
 
 	# ###############################
@@ -111,6 +115,7 @@ def main(
 
 	if 3 in STEPS:
 		print('**************************************\n\t\t\tSTEP 3\n**************************************')
+		print(cmd)
 		os.system( ' '.join(cmd) )
 
 	# ###############################
@@ -135,6 +140,7 @@ def main(
 
 	if 4 in STEPS:
 		print('**************************************\n\t\t\tSTEP 4\n**************************************')
+		print(cmd)
 		os.system( ' '.join(cmd) )
 
 	# ###############################
@@ -144,6 +150,7 @@ def main(
 	if 5 in STEPS:
 
 		print('**************************************\n\t\t\tSTEP 5\n**************************************')
+		print(cmd)
 
 		from iquaflow.metrics import BBDetectionMetrics
 
@@ -156,7 +163,12 @@ def main(
 		# metric format (list)
 		results = { k:[results[k]] for k in results }
 		# more metrics
-		results['format'] = [ glob.glob(os.path.join(outputpath,'images','*'))[0].split('.')[-1] ]
+		results['format'] = (
+			glob.glob(os.path.join(outputpath,'images','*'))[0].split('.')[-1]
+			if not os.path.isdir(os.path.join(outputpath,'images_compressed'))
+			else glob.glob(os.path.join(outputpath,'images_compressed','*'))[0].split('.')[-1]
+			)
+			
 		results['Mb'] = [ (
 			get_avg_file_size(os.path.join(outputpath,'images','*'))
 			if not os.path.isdir(os.path.join(outputpath,'images_compressed'))
@@ -166,20 +178,24 @@ def main(
 		results['MODEL'] = MODEL
 		results['CROPSZ'] = CROPSZ
 
+		# results['quality'] = 101
+		# results['scaleperc'] = 101
+		# results['bits'] = 9
+
 		with open(os.path.join(outputpath,'results.json'), 'w') as outfile:
 			json.dump(results, outfile)
 
 if __name__=='__main__':
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--trainds', type=str, default='/Nas/DOTA1_0/split_ss_dota1_0_glasgow_1024/val', help='input dataset path')
+	parser.add_argument('--trainds', type=str, default='/data/DOTA1_0/split_ss_dota1_0_glasgow_1024/val', help='input dataset path')
 	parser.add_argument('--outputpath', type=str, default='/iqf/outputpath', help='input dataset path')
 	#parser.add_argument('--cropsz', type=int, default=1024, help='crop size')
 	parser.add_argument('--steps', type=str, default='0,1,2,3,4,5', help='CUDA_VISIBLE_DEVICES')
 	parser.add_argument('--cu', type=str, default='0,1', help='CUDA_VISIBLE_DEVICES')
 	parser.add_argument('--model',
 		type=str,
-		default='/Nas/DOTA1_0/split_ss_dota1_0_glasgow_1024/train/chkpt/dota_rfcn_output_2000000_136610/frozen_inference_graph.pb',
+		default='/data/DOTA1_0/split_ss_dota1_0_glasgow_1024/train/chkpt/dota_rfcn_output_2000000_136610/frozen_inference_graph.pb',
 		help='model full subfolder name'
 	)
 	opt = parser.parse_args()

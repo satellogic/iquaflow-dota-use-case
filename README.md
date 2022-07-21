@@ -9,10 +9,11 @@ ________________________________________________________________________________
 
 1. `git clone git@publicgitlab.satellogic.com:iqf/iq-dota-use-case`
 2. `cd iq-dota-use-case`
-3. Then build the docker image with `make build`. This will also download the dataset and weights.
+3. Then build the docker image with `make build`. 
 4. In order to execute the experiments:
     - `make dockershell` (\*)
-    - Inside the docker terminal execute `python ./iqf-usecase.py`
+    - `make download` from outsite the docker or just `./download.sh` from inside the docker. This will download the trained models and preprocess the data.
+    - Inside the docker terminal execute `/miniconda3/envs/iqfenv/bin/python ./iqf-usecase.py`
 5. Start the mlflow server by doing `make mlflow` (\*)
 6. Notebook examples can be launched and executed by `make notebookshell NB_PORT=[your_port]"` (\**)
 7. To access the notebook from your browser in your local machine you can do:

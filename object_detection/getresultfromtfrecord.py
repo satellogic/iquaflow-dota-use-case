@@ -16,6 +16,7 @@
 """Tests for input_reader_builder."""
 
 import os
+import argparse
 import numpy as np
 import tensorflow as tf
 import sys
@@ -38,157 +39,212 @@ from utils import label_map_util
 ## to use the code, you need change PATH_TO_CKPT, tf_record_path, RESULT_PATH, total(which is determined by tf_record_path)
 
 from utils import visualization_utils as vis_util
-#PATH_TO_CKPT = r'/your/path/to/models/object_detection/models/model/dota608_ssd608_output_1243788/frozen_inference_graph.pb'
-PATH_TO_CKPT = r'/your/path/to/models/object_detection/models/model/dota_rfcn_output_2000000_136610/frozen_inference_graph.pb'
 
-# List of the strings that is used to add correct label for each box.
-#PATH_TO_LABELS = os.path.join('data', 'mscoco_label_map.pbtxt')
-PATH_TO_LABELS = os.path.join('data', 'dota_label_map.pbtxt')
+def main(arg_dict):
+    
+    PATH_TO_CKPT = arg_dict['PATH_TO_CKPT']
+    testsetpath = arg_dict['testsetpath']
+    RESULT_PATH = arg_dict['RESULT_PATH']
+    tf_record_path = arg_dict['tf_record_path']
+    
+    
+#     #PATH_TO_CKPT = r'/your/path/to/models/object_detection/models/model/dota608_ssd608_output_1243788/frozen_inference_graph.pb'
+#     PATH_TO_CKPT = r'/Nas/DOTA1_0/split_ss_dota1_0_glasgow_1024/train/chkpt/dota_rfcn_output_2000000_136610/frozen_inference_graph.pb'
+    
+#     #testsetpath = r'/your/path/to/data/dota608/test.txt'
+#     testsetpath = r'/Nas/DOTA1_0/split_ss_dota1_0_glasgow_1024/val/val.txt'
+    
+#     RESULT_PATH = r'/Nas/DOTA1_0/split_ss_dota1_0_glasgow_1024/val/results/dota_rfcn_output_2000000_136610'
+#     #RESULT_PATH = r'/your/path/to/models/object_detection/models/model/results/dota608_ssd608_output_1243788_test'
 
-NUM_CLASSES = 15
-detection_graph = tf.Graph()
-with detection_graph.as_default():
-  od_graph_def = tf.GraphDef()
-  with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
-    serialized_graph = fid.read()
-    od_graph_def.ParseFromString(serialized_graph)
-    tf.import_graph_def(od_graph_def, name='')
+#     tf_record_path = r'/Nas/DOTA1_0/split_ss_dota1_0_glasgow_1024/val/tf_records/dota_val.record'
+#     #tf_record_path = r'/your/path/to/data/dota608/tf_records/dota_test_608.record'
+    
+    
+    os.makedirs(RESULT_PATH,exist_ok=True)
 
-label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
-categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
-category_index = label_map_util.create_category_index(categories)
+    # List of the strings that is used to add correct label for each box.
+    #PATH_TO_LABELS = os.path.join('data', 'mscoco_label_map.pbtxt')
+    PATH_TO_LABELS = os.path.join('data', 'dota_label_map.pbtxt')
 
+    # def load_model():
+    #     with tf.gfile.GFile(PATH_TO_CKPT, "rb") as f:
+    #         graph_def = tf.GraphDef()
+    #         graph_def.ParseFromString(f.read(-1))
 
-# If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
-PATH_TO_TEST_IMAGES_DIR = 'test_images'
+    #     with tf.Graph().as_default() as graph:
+    #         tf.import_graph_def(graph_def, name="")
+    #     tf.import_graph_def(graph_def, name='')
+    #     return graph
 
-# TEST_IMAGE_PATHS = [ os.path.join(PATH_TO_TEST_IMAGES_DIR, 'image{}.jpg'.format(i)) for i in range(3, 6) ]
+    # load_model()
 
-#testsetpath = r'/your/path/to/data/dota608/test.txt'
-testsetpath = r'/your/path/to/data/dota/test.txt'
+    NUM_CLASSES = 15
+    detection_graph = tf.Graph()
+    with detection_graph.as_default():
+      od_graph_def = tf.GraphDef()
+      with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
+        serialized_graph = fid.read()
+        od_graph_def.ParseFromString(serialized_graph)
+        tf.import_graph_def(od_graph_def, name='')
 
-with open(testsetpath, 'r') as f:
-    lines = f.readlines()
-    TEST_IMAGE_PATHS = [x.strip() for x in lines]
-
-# Size, in inches, of the output images.
-IMAGE_SIZE = (20, 15)
-RESULT_PATH = r'/your/path/to/models/object_detection/models/model/results/dota_rfcn_output_2000000_136610_test'
-#RESULT_PATH = r'/your/path/to/models/object_detection/models/model/results/dota608_ssd608_output_1243788_test'
-
-tf_record_path = r'/your/path/to/data/dota/tf_records/dota_test.record'
-#tf_record_path = r'/your/path/to/data/dota608/tf_records/dota_test_608.record'
-input_reader_text_proto = """
-  shuffle: false
-  num_readers: 1
-  tf_record_input_reader {{
-    input_path: '{0}'
-  }}
-""".format(tf_record_path)
-print 'ffffffffffffff'
-
-# sv = tf.train.Supervisor(logdir=self.get_temp_dir())
-
-# sv = tf.train.Supervisor(logdir=self.get_temp_dir())
-
-# tensor_dict[fields.InputDataFields.image] = tf.expand_dims(
-#     tensor_dict[fields.InputDataFields.image], 0)
-#
-# images = tensor_dict[fields.InputDataFields.image]
-# float_images = tf.to_float(images)
-# tensor_dict[fields.InputDataFields.image] = float_images
+    label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
+    categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
+    category_index = label_map_util.create_category_index(categories)
 
 
-# input_queue = batcher.BatchQueue(
-#     tensor_dict,
-#     batch_size=30,
-#     batch_queue_capacity=100,
-#     num_batch_queue_threads=4,
-#     prefetch_queue_capacity=100)
+    # If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
+    PATH_TO_TEST_IMAGES_DIR = 'test_images'
 
-### it seems that the code must have a feed_dict, so I have to run the queue.pop(tensor_dict) to get the data then feed the feed_dict.
-#  Commonly, if we have a queue, can we direct use the tensor, and run the final output tensor?
-with detection_graph.as_default():
-    with tf.Session(graph=detection_graph) as sess:
-        input_reader_proto = input_reader_pb2.InputReader()
-        text_format.Merge(input_reader_text_proto, input_reader_proto)
-        tensor_dict = input_reader_builder.build(input_reader_proto)
-        print 'type tensor_dict', type(tensor_dict)
-        #print 'tensor_dict', tensor_dict
-  # sv.start_queue_runners(sess)
-        image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-        # Each box represents a part of the image where a particular object was detected.
-        detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-        # Each score represent how level of confidence for each of the objects.
-        # Score is shown on the result image, together with the class label.
-        detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
-        detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
-        num_detections = detection_graph.get_tensor_by_name('num_detections:0')
-        outfileset = {}
-        ## for bod-v3
-        total = len(TEST_IMAGE_PATHS)
-	print('lmages len:', total)
-        ## for dota608
-        #total = 22010
-        coord = tf.train.Coordinator()
+    # TEST_IMAGE_PATHS = [ os.path.join(PATH_TO_TEST_IMAGES_DIR, 'image{}.jpg'.format(i)) for i in range(3, 6) ]
 
-        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-        testnames = []
-        for index in range(total):
-        #while not coord.should_stop():
-            print str(index) + '/' + str(total)
-            output_dict = sess.run(tensor_dict)
-            #print 'output_dict shape', tf.shape(tensor_dict)
+    with open(testsetpath, 'r') as f:
+        lines = f.readlines()
+        TEST_IMAGE_PATHS = [x.strip() for x in lines]
 
-            image = output_dict[fields.InputDataFields.image]
-            source_id = output_dict[fields.InputDataFields.source_id]
-            filename = output_dict[fields.InputDataFields.filename]
-            height, width, depth = image.shape
-            #print 'shape:', output_dict[fields.InputDataFields.image].shape
-            #print 'source_id', output_dict[fields.InputDataFields.source_id]
-            #print 'filename', output_dict[fields.InputDataFields.filename]
-            #print 'image:', output_dict[fields.InputDataFields.image]
-            image_np_expanded = np.expand_dims(image, axis=0)
-            # Actual detection.
-            (boxes, scores, classes, num) = sess.run(
-                [detection_boxes, detection_scores, detection_classes, num_detections],
-                feed_dict={image_tensor: image_np_expanded})
-            #subimgname = os.path.basename(os.path.splitext(filename)[0])
-            subimgname = filename
-            testnames.append(subimgname)
-            # print('shape boxes:', np.shape(boxes))
-            # print('shape scores:', np.shape(scores))
-            # print('shape classes:', np.shape(classes))
-            min_score_thresh = 0.1
-            boxes = np.squeeze(boxes)
-            classes = np.squeeze(classes).astype(np.int32)
-            scores = np.squeeze(scores)
-            for i in range(boxes.shape[0]):
-                if scores[i] > min_score_thresh:
-                    #print('boxes[i]:', boxes[i])
+    # Size, in inches, of the output images.
+    IMAGE_SIZE = (20, 15)
 
-                    for j in range(len(boxes[i])):
-                        if (j % 2) == 0:
-                            boxes[i][j] = boxes[i][j] * height
-                        else:
-                            boxes[i][j] = boxes[i][j] * width
-                    box = tuple(boxes[i].tolist())
-                    #box = tuple((1024 * boxes[i]).tolist())
-                    #print('box:', box)
-                    assert classes[i] in category_index.keys(), 'the class is not in label_map'
-                    class_name = category_index[classes[i]]['name']
-                    ymin, xmin, ymax, xmax = box
-                    outline = subimgname + ' ' + str(scores[i]) + ' ' + str(xmin) + ' ' + str(ymin) + ' ' + str(
-                        xmax) + ' ' + str(ymax)
-                    if class_name not in outfileset:
-                        outfilename = os.path.join(RESULT_PATH, 'comp4_det_test_' + class_name + '.txt')
-                        outfileset[class_name] = open(outfilename, 'w')
-                    outfileset[class_name].write(outline + '\n')
-        coord.request_stop()
-        coord.join(threads)
-        testnamesset = set(testnames)
-        print 'testnamesset len:', len(testnamesset)
+    input_reader_text_proto = """
+      shuffle: false
+      num_readers: 1
+      tf_record_input_reader {{
+        input_path: '{0}'
+      }}
+    """.format(tf_record_path)
+    print(input_reader_text_proto)
+
+    # sv = tf.train.Supervisor(logdir=self.get_temp_dir())
+
+    # sv = tf.train.Supervisor(logdir=self.get_temp_dir())
+
+    # tensor_dict[fields.InputDataFields.image] = tf.expand_dims(
+    #     tensor_dict[fields.InputDataFields.image], 0)
+    #
+    # images = tensor_dict[fields.InputDataFields.image]
+    # float_images = tf.to_float(images)
+    # tensor_dict[fields.InputDataFields.image] = float_images
 
 
+    # input_queue = batcher.BatchQueue(
+    #     tensor_dict,
+    #     batch_size=30,
+    #     batch_queue_capacity=100,
+    #     num_batch_queue_threads=4,
+    #     prefetch_queue_capacity=100)
+
+    ### it seems that the code must have a feed_dict, so I have to run the queue.pop(tensor_dict) to get the data then feed the feed_dict.
+    #  Commonly, if we have a queue, can we direct use the tensor, and run the final output tensor?
+    with detection_graph.as_default():
+        with tf.Session(graph=detection_graph) as sess:
+            input_reader_proto = input_reader_pb2.InputReader()
+            text_format.Merge(input_reader_text_proto, input_reader_proto)
+            tensor_dict = input_reader_builder.build(input_reader_proto)
+            print('type tensor_dict', type(tensor_dict))
+            #print 'tensor_dict', tensor_dict
+      # sv.start_queue_runners(sess)
+            image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
+            # Each box represents a part of the image where a particular object was detected.
+            detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
+            # Each score represent how level of confidence for each of the objects.
+            # Score is shown on the result image, together with the class label.
+            detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
+            detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
+            num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+            outfileset = {}
+            ## for bod-v3
+            total = len(TEST_IMAGE_PATHS)
+            print('lmages len:', total)
+            ## for dota608
+            #total = 22010
+            coord = tf.train.Coordinator()
+
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+            testnames = []
+            for index in range(total):
+            #while not coord.should_stop():
+                print (str(index) + '/' + str(total))
+                output_dict = sess.run(tensor_dict)
+                #print 'output_dict shape', tf.shape(tensor_dict)
+
+                image = output_dict[fields.InputDataFields.image]
+                source_id = output_dict[fields.InputDataFields.source_id]
+                filename = output_dict[fields.InputDataFields.filename]
+                height, width, depth = image.shape
+                #print 'shape:', output_dict[fields.InputDataFields.image].shape
+                #print 'source_id', output_dict[fields.InputDataFields.source_id]
+                #print 'filename', output_dict[fields.InputDataFields.filename]
+                #print 'image:', output_dict[fields.InputDataFields.image]
+                image_np_expanded = np.expand_dims(image, axis=0)
+                # Actual detection.
+                (boxes, scores, classes, num) = sess.run(
+                    [detection_boxes, detection_scores, detection_classes, num_detections],
+                    feed_dict={image_tensor: image_np_expanded})
+                #subimgname = os.path.basename(os.path.splitext(filename)[0])
+                subimgname = filename
+                testnames.append(subimgname)
+                # print('shape boxes:', np.shape(boxes))
+                # print('shape scores:', np.shape(scores))
+                # print('shape classes:', np.shape(classes))
+                min_score_thresh = 0.1
+                boxes = np.squeeze(boxes)
+                classes = np.squeeze(classes).astype(np.int32)
+                scores = np.squeeze(scores)
+                for i in range(boxes.shape[0]):
+                    if scores[i] > min_score_thresh:
+                        #print('boxes[i]:', boxes[i])
+
+                        for j in range(len(boxes[i])):
+                            if (j % 2) == 0:
+                                boxes[i][j] = boxes[i][j] * height
+                            else:
+                                boxes[i][j] = boxes[i][j] * width
+                        box = tuple(boxes[i].tolist())
+                        #box = tuple((1024 * boxes[i]).tolist())
+                        #print('box:', box)
+                        assert classes[i] in category_index.keys(), 'the class is not in label_map'
+                        class_name = category_index[classes[i]]['name']
+                        ymin, xmin, ymax, xmax = box
+                        outline = str(subimgname) + ' ' + str(scores[i]) + ' ' + str(xmin) + ' ' + str(ymin) + ' ' + str(xmax) + ' ' + str(ymax)
+                        if class_name not in outfileset:
+                            outfilename = os.path.join(RESULT_PATH, 'comp4_det_test_' + class_name + '.txt')
+                            outfileset[class_name] = open(outfilename, 'w')
+                        outfileset[class_name].write(outline + '\n')
+            coord.request_stop()
+            coord.join(threads)
+            testnamesset = set(testnames)
+            print ('testnamesset len:', len(testnamesset))
+
+if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('--trainds', type=str, default='', help='dataset path')
+    parser.add_argument('--outputpath', type=str, default='/iqf/outputpath', help='outputpath')
+    parser.add_argument('--cu', type=str, default='0', help='CUDA_VISIBLE_DEVICES')
+    parser.add_argument('--model', type=str,
+     default='/data/DOTA1_0/split_ss_dota1_0_glasgow_1024/train/chkpt/dota_rfcn_output_2000000_136610/frozen_inference_graph.pb',
+      help='initial weights subpath')
+    
+    opt = parser.parse_args()
+
+    os.environ['CUDA_VISIBLE_DEVICES']=opt.cu
+    
+    # PATH_TO_CKPT = f'/iqf/object_detection/{model}/frozen_inference_graph.pb'
+    # train_ds = f'/Nas/DOTA1_0/split_ss_dota1_0_glasgow_{cropsz}/val'
+    PATH_TO_CKPT = opt.model
+    testsetpath = os.path.join(opt.trainds,'val.txt')
+
+    # RESULT_PATH = os.path.join(os.path.dirname(train_ds),f'results/{model}/split')
+    # tf_record_path = os.path.join(train_ds,'tf_records/dota_val.record')
+    RESULT_PATH = os.path.join(opt.outputpath,f'split')
+    tf_record_path = os.path.join(opt.trainds,'tf_records/dota_val.record')
+    
+    main({
+        'PATH_TO_CKPT':PATH_TO_CKPT,
+        'testsetpath':testsetpath,
+        'RESULT_PATH':RESULT_PATH,
+        'tf_record_path':tf_record_path
+    })
 
 

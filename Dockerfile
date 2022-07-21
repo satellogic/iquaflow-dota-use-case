@@ -47,12 +47,22 @@ RUN pip install --upgrade pip && \
 ENV CONDA_DIR $HOME/miniconda3
 ENV PATH=$CONDA_DIR/bin:$PATH
 RUN echo ". $CONDA_DIR/etc/profile.d/conda.sh" >> ~/.profile
+
+COPY ./iquaflow ./iquaflow
+
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
 	chmod 775 Miniconda3-latest-Linux-x86_64.sh && \
 	bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_DIR && \
 	rm Miniconda3-latest-Linux-x86_64.sh && \
 	$CONDA_DIR/bin/conda create -n iqfenv python=3.6 -q -y && \
-	$CONDA_DIR/bin/conda run -n iqfenv pip install git+https://gitlab+deploy-token-45:FKSA3HpmgUoxa5RZ69Cf@publicgitlab.satellogic.com/iqf/iquaflow-
+	echo "git clone iquaflow"
+
+COPY ./iquaflow ./iquaflow
+
+RUN cd iquaflow && \
+	$CONDA_DIR/bin/conda run -n iqfenv pip install . && \
+	cd .. && \
+	echo "rm -rf iquaflow" 
 
 RUN rm /usr/local/share/jupyter/kernels/python3/kernel.json
 COPY ./kernel.json /usr/local/share/jupyter/kernels/python3/kernel.json

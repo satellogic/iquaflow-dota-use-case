@@ -25,18 +25,19 @@ FLAGS = flags.FLAGS
 def create_tf_example(data,
                       imagepath,
                       label_map_dict,
-                      filename,
+                      filename, imgformat,
                       ignore_difficult_instances=True
                       ):
   # TODO(user): Populate the following variables from your example.
 
-  full_path = os.path.join(imagepath, filename + '.png')
+  full_path = os.path.join(imagepath, filename + '.' + imgformat )
   with tf.gfile.GFile(full_path, 'rb') as fid:
     encoded_png = fid.read()
   encoded_png_io = io.BytesIO(encoded_png)
   image = PIL.Image.open(encoded_png_io)
-  if image.format != 'PNG':
-    raise ValueError('Image format not PNG')
+  # if image.format != 'PNG':
+  #   print(ValueError('Image format not PNG'))
+    
 
   width = 1024
   height = 1024
@@ -92,7 +93,7 @@ def create_tf_example(data,
       'image/filename': dataset_util.bytes_feature(filename.encode('utf8')),
       'image/source_id': dataset_util.bytes_feature(filename.encode('utf8')),
       'image/encoded': dataset_util.bytes_feature(encoded_png),
-      'image/format': dataset_util.bytes_feature('png'.encode('utf8')),
+      'image/format': dataset_util.bytes_feature(imgformat.encode('utf8')),
       'image/object/bbox/xmin': dataset_util.float_list_feature(xmins),
       'image/object/bbox/xmax': dataset_util.float_list_feature(xmaxs),
       'image/object/bbox/ymin': dataset_util.float_list_feature(ymins),
@@ -121,7 +122,8 @@ def main(_):
     imagepath = os.path.join(data_dir, 'images')
     f = open(os.path.join(data_dir, indexfile), 'r')
     lines = f.readlines()
-    txtlist = [x.strip().replace(r'images', r'labelTxt').replace('.png', '.txt') for x in lines]
+    imgformat = os.path.basename(lines[0].split('.')[-1]).replace('\n','')
+    txtlist = [x.strip().replace(r'images', r'labelTxt').replace('.png', '.txt').replace('.jpg', '.txt').replace('.jpeg', '.txt') for x in lines]
     # txtlist = util.GetFileFromThisRootDir(os.path.join(data_dir, 'wordlabel'))
     for fullname in txtlist:
         data = util.parse_bod_rec(fullname)
@@ -134,7 +136,7 @@ def main(_):
         tf_example = create_tf_example(data,
                                        imagepath,
                                        label_map_dict,
-                                       basename)
+                                       basename, imgformat)
         writer.write(tf_example.SerializeToString())
     writer.close()
 

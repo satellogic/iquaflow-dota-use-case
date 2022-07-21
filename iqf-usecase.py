@@ -31,18 +31,18 @@ for quality in range(20,90,20):
                 )
 
 for model,cropsz in zip([
-    '/iqf/dota_rfcn_output_2000000_136610/frozen_inference_graph.pb',
-    # '/iqf/dota608_ssd608_output_1243788/frozen_inference_graph.pb'
+    # '/iqf/dota_rfcn_output_2000000_136610/saved_model/saved_model.pb',
+    '/iqf/dota608_ssd608_output_1243788/frozen_inference_graph.pb'
 ],[
-    1024,
-    # 608
+    # 1024,
+    608
 ]):
 
     #Experiment definition, pass as arguments all the components defined beforehand
     experiment = ExperimentSetup(
         experiment_name         = "iq-dota-use-case",
         task_instance           = PythonScriptTaskExecution( model_script_path = './inference.py' ),
-        ref_dsw_train           = DSWrapper(data_path=f'/Nas/DOTA1_0/split_ss_dota1_0_glasgow_{cropsz}/val'),
+        ref_dsw_train           = DSWrapper(data_path=f'/data/DOTA1_0/split_ss_dota1_0_glasgow_{cropsz}/val'),
         ds_modifiers_list       = [
             DSModifier_jpg(params={"quality": quality}) for quality in range(90,101,2)
         ] + [
@@ -55,12 +55,9 @@ for model,cropsz in zip([
             # *combo_mod_lst
         ],
         repetitions             = 1,
-        cloud_options           = {
-            'tracking_uri':'https://mlflow.ml.analytics-dev.satellogic.team/'
-        },
         extra_train_params      = {
             'model':[model],
-            'cu':['0,1,2']
+            'cu':['0,1,2,3,4,5']
             }
     )
 
